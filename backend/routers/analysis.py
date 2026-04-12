@@ -59,12 +59,12 @@ def run_analysis(req: AnalysisRequest):
     return {
         "test_name":         result.test_name,
         "statistic_name":    result.statistic_name,
-        "statistic":         result.statistic,
-        "p_value":           result.p_value,
-        "effect_size":       result.effect_size,
+        "statistic":         float(result.statistic) if result.statistic is not None else None,
+        "p_value":           float(result.p_value) if result.p_value is not None else None,
+        "effect_size":       float(result.effect_size) if result.effect_size is not None else None,
         "effect_size_name":  result.effect_size_name,
         "df":                str(result.df) if result.df is not None else None,
-        "significant":       result.significant,
+        "significant":       bool(result.significant) if result.significant is not None else None,
         "interpretation":    result.interpretation,
-        "alpha":             req.alpha,
+        "alpha":             float(req.alpha),
     }

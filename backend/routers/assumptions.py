@@ -26,9 +26,9 @@ class AssumptionRequest(BaseModel):
 def _result_dict(r) -> dict:
     return {
         "name":           r.name,
-        "passed":         r.passed,
-        "statistic":      r.statistic,
-        "p_value":        r.p_value,
+        "passed":         bool(r.passed) if r.passed is not None else None,
+        "statistic":      float(r.statistic) if r.statistic is not None else None,
+        "p_value":        float(r.p_value) if r.p_value is not None else None,
         "interpretation": r.interpretation,
         "recommendation": r.recommendation,
         "severity":       r.severity,
