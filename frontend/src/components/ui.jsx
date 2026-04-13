@@ -8,7 +8,7 @@ export const C = {
   coral:  "#00E5FF",   // primary cyan (semantic: primary)
   teal:   "#36F1CB",   // success mint
   yellow: "#FF7A1A",   // warning / Stark orange
-  purple: "#A78BFA",   // special / alternatives
+  purple: "#FF3B5C",   // special / Stark red
   navy:   "#1E3A5F",   // outline neutral
   cream:  "#05080F",   // deep space bg
   ink:    "#E8F4FF",   // primary text
@@ -215,7 +215,456 @@ export function ParallaxBackdrop() {
         position: "absolute", inset: 0,
         background: `radial-gradient(ellipse at center, transparent 40%, #000c 100%)`,
       }} />
+
+      {/* ── HUD WIDGETS ─────────────────────────────────────── */}
+      <HudWidgets />
     </div>
+  );
+}
+
+/* ─────────────────────────────────────────────────────────────────────
+   Ambient HUD widgets — decorative background overlays
+   ───────────────────────────────────────────────────────────────────── */
+
+function HudWidgets() {
+  const [tick, setTick] = useState(0);
+  useEffect(() => {
+    const id = setInterval(() => setTick(t => t + 1), 1200);
+    return () => clearInterval(id);
+  }, []);
+
+  const now = new Date();
+  const timeStr = now.toLocaleTimeString("en-GB", { hour12: false });
+  const dateStr = now.toLocaleDateString("en-GB", { weekday: "short", day: "2-digit", month: "short", year: "numeric" });
+
+  const cpu = 8 + Math.round(Math.abs(Math.sin(tick * 0.4)) * 22);
+  const ram = 38 + Math.round(Math.abs(Math.cos(tick * 0.3)) * 18);
+  const net = 2 + Math.round(Math.abs(Math.sin(tick * 0.6)) * 12);
+  const temp = 41 + Math.round(Math.abs(Math.sin(tick * 0.25)) * 8);
+  const upH = Math.floor(tick * 1.2 / 3600) % 100;
+  const upM = Math.floor((tick * 1.2 % 3600) / 60);
+  const upS = Math.floor(tick * 1.2 % 60);
+
+  const wBase = {
+    position: "absolute",
+    pointerEvents: "none",
+    opacity: 0.35,
+    fontFamily: "JetBrains Mono, monospace",
+    fontSize: 9,
+    letterSpacing: "0.14em",
+    color: C.muted,
+  };
+
+  return (
+    <>
+      {/* ── TOP-LEFT: clock + date ──────────────────────────── */}
+      <div style={{ ...wBase, top: 80, left: 20, opacity: 0.4 }}>
+        <div style={{ fontSize: 22, fontWeight: 700, color: C.coral, letterSpacing: "0.08em", textShadow: `0 0 10px ${C.coral}66` }}>
+          {timeStr}
+        </div>
+        <div style={{ marginTop: 4, color: C.muted, fontSize: 9 }}>{dateStr.toUpperCase()}</div>
+      </div>
+
+      {/* ── TOP-LEFT: CPU + RAM bars ────────────────────────── */}
+      <div style={{ ...wBase, top: 140, left: 20, width: 110 }}>
+        <div style={{ marginBottom: 10 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 3 }}>
+            <span style={{ color: C.coral, fontSize: 8 }}>[CPU]</span>
+            <span style={{ color: C.coral }}>{cpu}%</span>
+          </div>
+          <div style={{ height: 3, background: C.border, overflow: "hidden" }}>
+            <motion.div
+              animate={{ width: `${cpu}%` }}
+              transition={{ duration: 0.8 }}
+              style={{ height: "100%", background: cpu > 70 ? "#FF3B5C" : C.coral, boxShadow: `0 0 6px ${C.coral}` }}
+            />
+          </div>
+        </div>
+        <div>
+          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 3 }}>
+            <span style={{ color: C.teal, fontSize: 8 }}>[RAM]</span>
+            <span style={{ color: C.teal }}>{ram}%</span>
+          </div>
+          <div style={{ height: 3, background: C.border, overflow: "hidden" }}>
+            <motion.div
+              animate={{ width: `${ram}%` }}
+              transition={{ duration: 0.8 }}
+              style={{ height: "100%", background: C.teal, boxShadow: `0 0 6px ${C.teal}` }}
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* ── LEFT: waveform visualizer ───────────────────────── */}
+      <div style={{ ...wBase, top: "45%", left: 16, opacity: 0.25 }}>
+        <div style={{ fontSize: 8, color: C.coral, marginBottom: 4 }}>[WAVEFORM]</div>
+        <svg width="100" height="36" viewBox="0 0 100 36">
+          {Array.from({ length: 25 }).map((_, i) => {
+            const h = 4 + Math.abs(Math.sin((tick * 0.8 + i * 0.5)) * 14);
+            return (
+              <rect key={i} x={i * 4} y={18 - h / 2} width={2.5} height={h} fill={C.coral} opacity={0.7} rx={1} />
+            );
+          })}
+        </svg>
+      </div>
+
+      {/* ── BOTTOM-LEFT: network speed ──────────────────────── */}
+      <div style={{ ...wBase, bottom: 80, left: 20 }}>
+        <div style={{ fontSize: 8, color: C.teal, marginBottom: 4 }}>[NETWORK]</div>
+        <div style={{ display: "flex", gap: 16 }}>
+          <div>
+            <span style={{ color: C.muted, fontSize: 7 }}>DN:</span>{" "}
+            <span style={{ color: C.teal }}>{net}.{Math.floor(tick * 3 % 10)} MB/s</span>
+          </div>
+          <div>
+            <span style={{ color: C.muted, fontSize: 7 }}>UP:</span>{" "}
+            <span style={{ color: C.coral }}>{Math.max(1, net - 4)}.{Math.floor(tick * 7 % 10)} MB/s</span>
+          </div>
+        </div>
+      </div>
+
+      {/* ── TOP-RIGHT: temperature + uptime ─────────────────── */}
+      <div style={{ ...wBase, top: 80, right: 20, textAlign: "right", opacity: 0.4 }}>
+        <div style={{ display: "flex", alignItems: "baseline", justifyContent: "flex-end", gap: 4 }}>
+          <span style={{ fontSize: 20, fontWeight: 700, color: temp > 45 ? C.yellow : C.teal, textShadow: `0 0 8px ${temp > 45 ? C.yellow : C.teal}66` }}>
+            {temp}
+          </span>
+          <span style={{ fontSize: 9, color: C.muted }}>°C</span>
+          <span style={{ fontSize: 8, color: C.muted, marginLeft: 6 }}>[TEMP]</span>
+        </div>
+        <div style={{ marginTop: 8, fontSize: 8, color: C.muted }}>
+          [UPTIME] {String(upH).padStart(2, "0")}:{String(upM).padStart(2, "0")}:{String(upS).padStart(2, "0")}
+        </div>
+      </div>
+
+      {/* ── RIGHT: circular gauge ───────────────────────────── */}
+      <div style={{ ...wBase, top: "38%", right: 18, opacity: 0.25 }}>
+        <svg width="60" height="60" viewBox="0 0 60 60">
+          <circle cx="30" cy="30" r="26" fill="none" stroke={C.border} strokeWidth="2" />
+          <circle
+            cx="30" cy="30" r="26" fill="none"
+            stroke={C.coral} strokeWidth="2"
+            strokeDasharray={`${cpu * 1.63} 163`}
+            strokeLinecap="round"
+            transform="rotate(-90 30 30)"
+            style={{ filter: `drop-shadow(0 0 4px ${C.coral})` }}
+          />
+          <text x="30" y="28" textAnchor="middle" fontSize="10" fill={C.coral} fontFamily="Orbitron" fontWeight="700">
+            {cpu}
+          </text>
+          <text x="30" y="38" textAnchor="middle" fontSize="6" fill={C.muted} fontFamily="JetBrains Mono" letterSpacing="0.1em">
+            CPU
+          </text>
+        </svg>
+      </div>
+
+      {/* ── RIGHT-MID: second circular gauge (RAM) ──────────── */}
+      <div style={{ ...wBase, top: "55%", right: 22, opacity: 0.2 }}>
+        <svg width="50" height="50" viewBox="0 0 50 50">
+          <circle cx="25" cy="25" r="21" fill="none" stroke={C.border} strokeWidth="1.5" />
+          <circle
+            cx="25" cy="25" r="21" fill="none"
+            stroke={C.teal} strokeWidth="1.5"
+            strokeDasharray={`${ram * 1.32} 132`}
+            strokeLinecap="round"
+            transform="rotate(-90 25 25)"
+            style={{ filter: `drop-shadow(0 0 4px ${C.teal})` }}
+          />
+          <text x="25" y="24" textAnchor="middle" fontSize="9" fill={C.teal} fontFamily="Orbitron" fontWeight="700">
+            {ram}
+          </text>
+          <text x="25" y="33" textAnchor="middle" fontSize="5" fill={C.muted} fontFamily="JetBrains Mono" letterSpacing="0.1em">
+            RAM
+          </text>
+        </svg>
+      </div>
+
+      {/* ── BOTTOM-RIGHT: data throughput sparkline ──────────── */}
+      <div style={{ ...wBase, bottom: 80, right: 20, opacity: 0.25, textAlign: "right" }}>
+        <div style={{ fontSize: 8, color: C.coral, marginBottom: 4 }}>[THROUGHPUT]</div>
+        <svg width="110" height="30" viewBox="0 0 110 30">
+          <polyline
+            fill="none" stroke={C.coral} strokeWidth="1.2"
+            points={Array.from({ length: 22 }).map((_, i) => {
+              const y = 15 + Math.sin((tick * 0.5 + i * 0.6)) * 10 + Math.cos((tick * 0.3 + i * 1.1)) * 4;
+              return `${i * 5},${y}`;
+            }).join(" ")}
+            style={{ filter: `drop-shadow(0 0 3px ${C.coral})` }}
+          />
+          <polyline
+            fill="none" stroke={C.teal} strokeWidth="0.8" opacity="0.6"
+            points={Array.from({ length: 22 }).map((_, i) => {
+              const y = 15 + Math.cos((tick * 0.4 + i * 0.8)) * 8;
+              return `${i * 5},${y}`;
+            }).join(" ")}
+          />
+        </svg>
+      </div>
+
+      {/* ── BOTTOM-CENTER-LEFT: small status blocks ─────────── */}
+      <div style={{ ...wBase, bottom: 30, left: "15%", opacity: 0.2, display: "flex", gap: 12 }}>
+        {[
+          { label: "SYS", val: "OK", color: C.teal },
+          { label: "SEC", val: "A+", color: C.teal },
+          { label: "I/O", val: `${net}M`, color: C.coral },
+        ].map(s => (
+          <div key={s.label} style={{
+            padding: "3px 8px",
+            border: `1px solid ${s.color}44`,
+            background: `${s.color}08`,
+            fontSize: 7, letterSpacing: "0.16em",
+          }}>
+            <span style={{ color: C.muted }}>{s.label}: </span>
+            <span style={{ color: s.color }}>{s.val}</span>
+          </div>
+        ))}
+      </div>
+
+      {/* ── BOTTOM-CENTER-RIGHT: coordinates ────────────────── */}
+      <div style={{ ...wBase, bottom: 30, right: "15%", opacity: 0.2, fontSize: 7 }}>
+        <span style={{ color: C.muted }}>LAT </span>
+        <span style={{ color: C.coral }}>48.8566°N</span>
+        <span style={{ color: C.muted, marginLeft: 10 }}>LON </span>
+        <span style={{ color: C.coral }}>2.3522°E</span>
+      </div>
+
+      {/* ── LEFT-MID: mini bar chart ────────────────────────── */}
+      <div style={{ ...wBase, top: "65%", left: 18, opacity: 0.2 }}>
+        <div style={{ fontSize: 7, color: C.teal, marginBottom: 4 }}>[ANALYSIS QUEUE]</div>
+        <svg width="80" height="28" viewBox="0 0 80 28">
+          {Array.from({ length: 10 }).map((_, i) => {
+            const h = 6 + Math.abs(Math.sin(tick * 0.3 + i * 0.9)) * 18;
+            return (
+              <rect key={i} x={i * 8} y={28 - h} width={5} height={h} fill={i % 3 === 0 ? C.coral : C.teal} opacity={0.6} />
+            );
+          })}
+        </svg>
+      </div>
+
+      {/* ── LEFT: ECG heartbeat line ────────────────────────── */}
+      <div style={{ ...wBase, top: "28%", left: 16, opacity: 0.22 }}>
+        <div style={{ fontSize: 7, color: "#FF3B5C", marginBottom: 3 }}>[VITALS]</div>
+        <svg width="120" height="32" viewBox="0 0 120 32">
+          <polyline
+            fill="none" stroke="#FF3B5C" strokeWidth="1.2"
+            strokeLinejoin="round" strokeLinecap="round"
+            points={Array.from({ length: 40 }).map((_, i) => {
+              const x = i * 3;
+              const phase = (i + tick * 3) % 20;
+              let y = 16;
+              if (phase === 8) y = 6;
+              else if (phase === 9) y = 26;
+              else if (phase === 10) y = 10;
+              else if (phase === 11) y = 16;
+              return `${x},${y}`;
+            }).join(" ")}
+            style={{ filter: "drop-shadow(0 0 3px #FF3B5C)" }}
+          />
+        </svg>
+        <div style={{ fontSize: 7, display: "flex", gap: 12, marginTop: 2 }}>
+          <span style={{ color: "#FF3B5C" }}>{68 + (tick % 5)} BPM</span>
+          <span style={{ color: C.muted }}>SpO2 {98 + (tick % 2)}%</span>
+        </div>
+      </div>
+
+      {/* ── TOP: power level bar (horizontal) ───────────────── */}
+      <div style={{ ...wBase, top: 80, left: "50%", transform: "translateX(-50%)", opacity: 0.18, width: 200 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", fontSize: 7, marginBottom: 3 }}>
+          <span style={{ color: C.coral }}>[ARC REACTOR]</span>
+          <span style={{ color: C.coral }}>PWR {Math.min(100, 85 + Math.round(Math.sin(tick * 0.2) * 10))}%</span>
+        </div>
+        <div style={{ height: 4, background: C.border, display: "flex", gap: 1 }}>
+          {Array.from({ length: 20 }).map((_, i) => {
+            const filled = i < Math.floor((85 + Math.sin(tick * 0.2) * 10) / 5);
+            return (
+              <div key={i} style={{
+                flex: 1, height: "100%",
+                background: filled ? (i > 16 ? "#FF3B5C" : C.coral) : "transparent",
+                boxShadow: filled ? `0 0 4px ${C.coral}` : "none",
+              }} />
+            );
+          })}
+        </div>
+      </div>
+
+      {/* ── RIGHT: mini rotating radar ──────────────────────── */}
+      <div style={{ ...wBase, top: "22%", right: 16, opacity: 0.2 }}>
+        <div style={{ fontSize: 7, color: C.teal, marginBottom: 3, textAlign: "right" }}>[RADAR]</div>
+        <svg width="70" height="70" viewBox="0 0 70 70">
+          <circle cx="35" cy="35" r="32" fill="none" stroke={C.border} strokeWidth="0.5" />
+          <circle cx="35" cy="35" r="22" fill="none" stroke={C.border} strokeWidth="0.4" />
+          <circle cx="35" cy="35" r="12" fill="none" stroke={C.border} strokeWidth="0.3" />
+          <line x1="35" y1="3" x2="35" y2="67" stroke={C.border} strokeWidth="0.3" />
+          <line x1="3" y1="35" x2="67" y2="35" stroke={C.border} strokeWidth="0.3" />
+          <motion.line
+            x1="35" y1="35" x2="35" y2="5"
+            stroke={C.teal} strokeWidth="1"
+            style={{ transformOrigin: "35px 35px", filter: `drop-shadow(0 0 4px ${C.teal})` }}
+            animate={{ rotate: 360 }}
+            transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+          />
+          {[
+            { cx: 45, cy: 20 }, { cx: 22, cy: 42 }, { cx: 50, cy: 48 },
+          ].map((dot, i) => (
+            <motion.circle
+              key={i} cx={dot.cx} cy={dot.cy} r="2"
+              fill={C.teal}
+              animate={{ opacity: [0.9, 0.2, 0.9] }}
+              transition={{ duration: 2, delay: i * 0.7, repeat: Infinity }}
+              style={{ filter: `drop-shadow(0 0 3px ${C.teal})` }}
+            />
+          ))}
+        </svg>
+      </div>
+
+      {/* ── RIGHT-BOTTOM: threat assessment ─────────────────── */}
+      <div style={{ ...wBase, bottom: 160, right: 16, opacity: 0.22, textAlign: "right" }}>
+        <div style={{ fontSize: 7, color: C.teal, marginBottom: 6 }}>[THREAT ASSESSMENT]</div>
+        {[
+          { label: "EXTERNAL", level: 0, color: C.teal },
+          { label: "INTERNAL", level: 0, color: C.teal },
+          { label: "NETWORK",  level: 1, color: C.yellow },
+          { label: "PAYLOAD",  level: 0, color: C.teal },
+        ].map(t => (
+          <div key={t.label} style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 8, marginBottom: 3 }}>
+            <span style={{ fontSize: 7, color: C.muted }}>{t.label}</span>
+            <div style={{ display: "flex", gap: 2 }}>
+              {Array.from({ length: 5 }).map((_, i) => (
+                <div key={i} style={{
+                  width: 6, height: 3,
+                  background: i <= t.level ? t.color : C.border,
+                  boxShadow: i <= t.level ? `0 0 3px ${t.color}` : "none",
+                }} />
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* ── LEFT-BOTTOM: shield integrity ───────────────────── */}
+      <div style={{ ...wBase, bottom: 160, left: 16, opacity: 0.2 }}>
+        <div style={{ fontSize: 7, color: C.coral, marginBottom: 4 }}>[SHIELD INTEGRITY]</div>
+        <svg width="80" height="50" viewBox="0 0 80 50">
+          <path d="M40 5 L70 18 L70 35 Q70 45 40 48 Q10 45 10 35 L10 18 Z"
+            fill="none" stroke={C.coral} strokeWidth="1" opacity="0.5" />
+          <path d="M40 10 L62 20 L62 33 Q62 40 40 43 Q18 40 18 33 L18 20 Z"
+            fill={C.coral} opacity="0.06" />
+          <text x="40" y="30" textAnchor="middle" fontSize="10" fill={C.coral} fontFamily="Orbitron" fontWeight="700">
+            {96 + (tick % 4)}%
+          </text>
+        </svg>
+      </div>
+
+      {/* ── TOP-MID-LEFT: SWAP + DISK bars ──────────────────── */}
+      <div style={{ ...wBase, top: 140, left: 150, width: 90, opacity: 0.18 }}>
+        {[
+          { label: "SWAP", val: 12 + (tick % 8), color: C.yellow },
+          { label: "DISK", val: 64 + (tick % 3), color: C.purple },
+          { label: "GPU",  val: 22 + Math.round(Math.sin(tick * 0.5) * 15), color: C.coral },
+        ].map(b => (
+          <div key={b.label} style={{ marginBottom: 6 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", fontSize: 7, marginBottom: 2 }}>
+              <span style={{ color: b.color }}>[{b.label}]</span>
+              <span style={{ color: b.color }}>{b.val}%</span>
+            </div>
+            <div style={{ height: 2, background: C.border }}>
+              <div style={{
+                width: `${b.val}%`, height: "100%",
+                background: b.color, boxShadow: `0 0 4px ${b.color}`,
+                transition: "width 0.8s",
+              }} />
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* ── TOP-MID-RIGHT: data feed scroll ─────────────────── */}
+      <div style={{ ...wBase, top: 140, right: 100, opacity: 0.15, width: 140, height: 60, overflow: "hidden" }}>
+        <div style={{ fontSize: 7, color: C.coral, marginBottom: 3 }}>[DATA FEED]</div>
+        <div style={{ fontSize: 7, lineHeight: 1.6, color: C.muted }}>
+          {Array.from({ length: 6 }).map((_, i) => {
+            const idx = (tick + i) % 8;
+            const feeds = [
+              `0x${(tick * 7 + i * 31).toString(16).toUpperCase().slice(0, 6).padStart(6, "0")}`,
+              `PKT_${String(tick * 3 + i).padStart(4, "0")} RECV`,
+              `CRC_OK  HASH_VALID`,
+              `SEQ ${String(tick + i * 11).padStart(6, "0")}`,
+              `ACK ${String(tick * 2 + i).padStart(4, "0")} · TTL 64`,
+              `SIG_STRENGTH -${42 + (i * 3)}dBm`,
+              `HANDSHAKE COMPLETE`,
+              `BUFFER ${Math.round(45 + Math.sin(tick * 0.3 + i) * 30)}%`,
+            ];
+            return (
+              <div key={i} style={{ color: idx % 3 === 0 ? C.coral : C.muted, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                {">"} {feeds[idx]}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* ── EDGES: decorative corner brackets ───────────────── */}
+      {[
+        { top: 10, left: 10 },
+        { top: 10, right: 10 },
+        { bottom: 10, left: 10 },
+        { bottom: 10, right: 10 },
+      ].map((pos, i) => (
+        <div key={i} style={{
+          ...wBase, ...pos, opacity: 0.15, width: 30, height: 30,
+          borderLeft: pos.left !== undefined ? `1.5px solid ${C.coral}` : "none",
+          borderRight: pos.right !== undefined ? `1.5px solid ${C.coral}` : "none",
+          borderTop: pos.top !== undefined ? `1.5px solid ${C.coral}` : "none",
+          borderBottom: pos.bottom !== undefined ? `1.5px solid ${C.coral}` : "none",
+        }} />
+      ))}
+
+      {/* ── EDGES: horizontal rule lines ────────────────────── */}
+      <div style={{ ...wBase, top: 70, left: 0, right: 0, height: 1, opacity: 0.08, background: `linear-gradient(90deg, ${C.coral}44, transparent 20%, transparent 80%, ${C.coral}44)` }} />
+      <div style={{ ...wBase, bottom: 70, left: 0, right: 0, height: 1, opacity: 0.08, background: `linear-gradient(90deg, ${C.coral}44, transparent 20%, transparent 80%, ${C.coral}44)` }} />
+
+      {/* ── LEFT: targeting crosshair ───────────────────────── */}
+      <div style={{ ...wBase, top: "80%", left: 30, opacity: 0.15 }}>
+        <svg width="40" height="40" viewBox="0 0 40 40">
+          <circle cx="20" cy="20" r="16" fill="none" stroke={C.coral} strokeWidth="0.6" strokeDasharray="3 3" />
+          <circle cx="20" cy="20" r="8" fill="none" stroke={C.coral} strokeWidth="0.4" />
+          <line x1="20" y1="2" x2="20" y2="10" stroke={C.coral} strokeWidth="0.6" />
+          <line x1="20" y1="30" x2="20" y2="38" stroke={C.coral} strokeWidth="0.6" />
+          <line x1="2" y1="20" x2="10" y2="20" stroke={C.coral} strokeWidth="0.6" />
+          <line x1="30" y1="20" x2="38" y2="20" stroke={C.coral} strokeWidth="0.6" />
+          <motion.circle
+            cx="20" cy="20" r="2" fill={C.coral}
+            animate={{ opacity: [1, 0.3, 1] }}
+            transition={{ duration: 1.5, repeat: Infinity }}
+            style={{ filter: `drop-shadow(0 0 4px ${C.coral})` }}
+          />
+        </svg>
+      </div>
+
+      {/* ── RIGHT-BOTTOM: mini frequency spectrum ──────────── */}
+      <div style={{ ...wBase, top: "75%", right: 14, opacity: 0.18 }}>
+        <div style={{ fontSize: 7, color: C.teal, marginBottom: 3, textAlign: "right" }}>[FREQ SPECTRUM]</div>
+        <svg width="90" height="24" viewBox="0 0 90 24">
+          {Array.from({ length: 30 }).map((_, i) => {
+            const h = 2 + Math.abs(Math.sin(tick * 0.6 + i * 0.4) * Math.cos(tick * 0.2 + i * 0.7)) * 18;
+            return (
+              <rect key={i} x={i * 3} y={24 - h} width={2} height={h}
+                fill={h > 14 ? C.coral : C.teal} opacity={0.6} />
+            );
+          })}
+        </svg>
+      </div>
+
+      {/* ── TOP: scrolling binary ticker ────────────────────── */}
+      <div style={{
+        ...wBase, top: 100, left: "50%", transform: "translateX(-50%)",
+        opacity: 0.08, fontSize: 7, letterSpacing: "0.3em",
+        color: C.coral, width: 300, textAlign: "center",
+        overflow: "hidden", whiteSpace: "nowrap",
+      }}>
+        {Array.from({ length: 48 }).map((_, i) => ((tick * 7 + i * 13) % 2).toString()).join("")}
+      </div>
+    </>
   );
 }
 
@@ -423,27 +872,41 @@ export function OptionCard({ label, desc, icon, selected, onClick, color = C.cor
    Segmented step bar
    ───────────────────────────────────────────────────────────────────── */
 export const STEPS = ["Questionnaire", "Upload", "Assumptions", "Analysis", "Report"];
+const STEP_ROUTES = ["/questionnaire", "/upload", "/assumptions", "/analysis", "/report"];
 
-export function StepBar({ current }) {
+export function StepBar({ current, onNavigate }) {
   return (
-    <div style={{ margin: "0 auto 48px", maxWidth: 720 }}>
+    <div style={{ margin: "0 auto 48px", maxWidth: 780 }}>
       <div style={{
         display: "flex", justifyContent: "space-between",
-        fontFamily: "Orbitron, sans-serif", fontSize: 10, fontWeight: 600,
-        letterSpacing: "0.14em", textTransform: "uppercase",
         marginBottom: 8,
       }}>
         {STEPS.map((s, i) => {
           const active = i === current;
           const done = i < current;
+          const clickable = done && onNavigate;
           return (
-            <div key={s} style={{
-              color: active ? C.coral : done ? C.teal : C.muted,
-              display: "flex", alignItems: "center", gap: 6,
-            }}>
+            <button
+              key={s}
+              onClick={clickable ? () => onNavigate(STEP_ROUTES[i]) : undefined}
+              style={{
+                display: "flex", alignItems: "center", gap: 6,
+                background: "none", border: "none", padding: "4px 8px",
+                cursor: clickable ? "pointer" : active ? "default" : "default",
+                fontFamily: "Orbitron, sans-serif", fontSize: 10, fontWeight: 600,
+                letterSpacing: "0.14em", textTransform: "uppercase",
+                color: active ? C.coral : done ? C.teal : C.muted,
+                transition: "color 0.2s, text-shadow 0.2s",
+                textShadow: clickable ? "none" : "none",
+                opacity: (!done && !active) ? 0.5 : 1,
+              }}
+              onMouseEnter={(e) => { if (clickable) e.target.style.textShadow = `0 0 10px ${C.teal}`; }}
+              onMouseLeave={(e) => { e.target.style.textShadow = "none"; }}
+            >
               <span className="mono" style={{ fontSize: 10 }}>{String(i + 1).padStart(2, "0")}</span>
               <span>{s}</span>
-            </div>
+              {clickable && <span style={{ fontSize: 8, opacity: 0.6, marginLeft: 2 }}>↩</span>}
+            </button>
           );
         })}
       </div>
@@ -465,7 +928,9 @@ export function StepBar({ current }) {
                 boxShadow: active || done ? `0 0 12px ${color}` : "none",
                 clipPath: "polygon(4px 0, 100% 0, calc(100% - 4px) 100%, 0 100%)",
                 transformOrigin: "left",
+                cursor: done ? "pointer" : "default",
               }}
+              onClick={done && onNavigate ? () => onNavigate(STEP_ROUTES[i]) : undefined}
             />
           );
         })}
@@ -522,7 +987,7 @@ export function SectionTitle({ children, subtitle }) {
       </div>
       <h2 style={{
         fontFamily: "Orbitron, sans-serif",
-        fontSize: 36, fontWeight: 800,
+        fontSize: "clamp(32px, 4vw, 44px)", fontWeight: 800,
         color: C.ink, margin: 0,
         textTransform: "uppercase", letterSpacing: "0.08em",
         textShadow: `0 0 30px ${C.coral}44`,

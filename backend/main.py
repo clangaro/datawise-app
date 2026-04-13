@@ -15,7 +15,7 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://localhost:3000"],  # Vite / CRA dev
+    allow_origins=["*"],  # Open for beta — lock down for production
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

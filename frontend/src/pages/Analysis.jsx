@@ -1,11 +1,79 @@
 import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
 import toast from "react-hot-toast";
 import {
   Calculator, CheckCircle2, MinusCircle, Play, Copy,
-  ArrowLeft, ArrowRight,
+  ArrowLeft, ArrowRight, Info,
 } from "lucide-react";
 import { Card, Btn, Pill, Spinner, SectionTitle, C } from "../components/ui.jsx";
+
+function HudTooltip({ children, label, description }) {
+  const [show, setShow] = useState(false);
+  return (
+    <div
+      style={{ position: "relative" }}
+      onMouseEnter={() => setShow(true)}
+      onMouseLeave={() => setShow(false)}
+    >
+      {children}
+      <AnimatePresence>
+        {show && (
+          <motion.div
+            initial={{ opacity: 0, y: 8, scale: 0.96 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 8, scale: 0.96 }}
+            transition={{ duration: 0.15 }}
+            style={{
+              position: "absolute", bottom: "calc(100% + 10px)", left: "50%",
+              transform: "translateX(-50%)",
+              width: 280, zIndex: 60,
+              padding: "14px 16px",
+              background: C.deep,
+              border: `1px solid ${C.coral}66`,
+              clipPath: "polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px)",
+              boxShadow: `0 0 30px ${C.coral}33, inset 0 0 0 1px ${C.coral}15`,
+              pointerEvents: "none",
+            }}
+          >
+            <div style={{
+              fontFamily: "Orbitron, sans-serif", fontSize: 10, fontWeight: 700,
+              color: C.coral, textTransform: "uppercase", letterSpacing: "0.12em",
+              marginBottom: 6, display: "flex", alignItems: "center", gap: 6,
+            }}>
+              <Info size={10} /> {label}
+            </div>
+            <div style={{
+              fontFamily: "Rajdhani, sans-serif", fontSize: 12,
+              color: C.ink + "dd", lineHeight: 1.6,
+            }}>
+              {description}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+const METRIC_EXPLAINERS = {
+  statistic: {
+    label: "Test Statistic",
+    description: "A number that summarises how far your data departs from the null hypothesis. Larger absolute values indicate stronger evidence against H₀. The exact formula depends on the test (t, F, χ², r, etc.).",
+  },
+  p_value: {
+    label: "P-Value",
+    description: "The probability of seeing results at least as extreme as yours if the null hypothesis were true. Below your alpha threshold (usually 0.05), you reject H₀. It does NOT tell you the size or importance of the effect.",
+  },
+  effect_size: {
+    label: "Effect Size",
+    description: "A standardised measure of how large the observed difference or relationship actually is, independent of sample size. Cohen's d: 0.2 = small, 0.5 = medium, 0.8 = large. Eta²/r follow their own benchmarks.",
+  },
+  df: {
+    label: "Degrees of Freedom",
+    description: "The number of independent values that can vary in the analysis. It shapes the reference distribution used to compute the p-value. Larger df generally means more statistical power.",
+  },
+};
 import { useAnalysis } from "../context/AnalysisContext.jsx";
 import { runAnalysis } from "../api/client.js";
 
@@ -114,7 +182,7 @@ export default function Analysis() {
   const esLabel = effectSizeBenchmark(testResult?.effect_size_name, testResult?.effect_size);
 
   return (
-    <div style={{ maxWidth: 760, margin: "0 auto" }}>
+    <div style={{ maxWidth: 1100, width: "100%", margin: "0 auto", padding: "0 16px" }}>
       <SectionTitle subtitle="Execute the selected statistical test on your data">
         Run analysis
       </SectionTitle>
@@ -206,34 +274,42 @@ export default function Analysis() {
           </Card>
 
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: 12, marginBottom: 20 }}>
-            <Card style={{ padding: "18px 20px", textAlign: "center" }}>
-              <div style={{ fontFamily: "Orbitron, sans-serif", fontWeight: 800, fontSize: 24, color: C.coral }}>
-                {testResult.statistic != null ? Number(testResult.statistic).toFixed(2) : "—"}
-              </div>
-              <div style={{ fontFamily: "Rajdhani, sans-serif", fontSize: 12, color: C.muted, marginTop: 4 }}>
-                {testResult.statistic_name}
-              </div>
-            </Card>
-            <Card style={{ padding: "18px 20px", textAlign: "center" }}>
-              <div style={{ fontFamily: "Orbitron, sans-serif", fontWeight: 800, fontSize: 24, color: pColor }}>
-                {testResult.p_value != null ? Number(testResult.p_value).toFixed(3) : "—"}
-              </div>
-              <div style={{ fontFamily: "Rajdhani, sans-serif", fontSize: 12, color: C.muted, marginTop: 4 }}>p-value</div>
-            </Card>
-            <Card style={{ padding: "18px 20px", textAlign: "center" }}>
-              <div style={{ fontFamily: "Orbitron, sans-serif", fontWeight: 800, fontSize: 24, color: C.purple }}>
-                {testResult.effect_size != null ? Number(testResult.effect_size).toFixed(2) : "—"}
-              </div>
-              <div style={{ fontFamily: "Rajdhani, sans-serif", fontSize: 12, color: C.muted, marginTop: 4 }}>
-                {testResult.effect_size_name || "Effect size"}{esLabel && ` · ${esLabel}`}
-              </div>
-            </Card>
-            <Card style={{ padding: "18px 20px", textAlign: "center" }}>
-              <div style={{ fontFamily: "Orbitron, sans-serif", fontWeight: 800, fontSize: 24, color: C.yellow }}>
-                {testResult.df || "—"}
-              </div>
-              <div style={{ fontFamily: "Rajdhani, sans-serif", fontSize: 12, color: C.muted, marginTop: 4 }}>df</div>
-            </Card>
+            <HudTooltip {...METRIC_EXPLAINERS.statistic}>
+              <Card style={{ padding: "18px 20px", textAlign: "center", cursor: "help" }}>
+                <div style={{ fontFamily: "Orbitron, sans-serif", fontWeight: 800, fontSize: 24, color: C.coral }}>
+                  {testResult.statistic != null ? Number(testResult.statistic).toFixed(2) : "—"}
+                </div>
+                <div style={{ fontFamily: "Rajdhani, sans-serif", fontSize: 12, color: C.muted, marginTop: 4 }}>
+                  {testResult.statistic_name}
+                </div>
+              </Card>
+            </HudTooltip>
+            <HudTooltip {...METRIC_EXPLAINERS.p_value}>
+              <Card style={{ padding: "18px 20px", textAlign: "center", cursor: "help" }}>
+                <div style={{ fontFamily: "Orbitron, sans-serif", fontWeight: 800, fontSize: 24, color: pColor }}>
+                  {testResult.p_value != null ? Number(testResult.p_value).toFixed(3) : "—"}
+                </div>
+                <div style={{ fontFamily: "Rajdhani, sans-serif", fontSize: 12, color: C.muted, marginTop: 4 }}>p-value</div>
+              </Card>
+            </HudTooltip>
+            <HudTooltip {...METRIC_EXPLAINERS.effect_size}>
+              <Card style={{ padding: "18px 20px", textAlign: "center", cursor: "help" }}>
+                <div style={{ fontFamily: "Orbitron, sans-serif", fontWeight: 800, fontSize: 24, color: C.purple }}>
+                  {testResult.effect_size != null ? Number(testResult.effect_size).toFixed(2) : "—"}
+                </div>
+                <div style={{ fontFamily: "Rajdhani, sans-serif", fontSize: 12, color: C.muted, marginTop: 4 }}>
+                  {testResult.effect_size_name || "Effect size"}{esLabel && ` · ${esLabel}`}
+                </div>
+              </Card>
+            </HudTooltip>
+            <HudTooltip {...METRIC_EXPLAINERS.df}>
+              <Card style={{ padding: "18px 20px", textAlign: "center", cursor: "help" }}>
+                <div style={{ fontFamily: "Orbitron, sans-serif", fontWeight: 800, fontSize: 24, color: C.yellow }}>
+                  {testResult.df || "—"}
+                </div>
+                <div style={{ fontFamily: "Rajdhani, sans-serif", fontSize: 12, color: C.muted, marginTop: 4 }}>df</div>
+              </Card>
+            </HudTooltip>
           </div>
 
           <Card style={{ marginBottom: 24 }}>
@@ -259,7 +335,7 @@ export default function Analysis() {
             <pre style={{
               fontFamily: "'IBM Plex Mono', Menlo, monospace",
               fontSize: 13, color: C.ink, lineHeight: 1.7,
-              background: C.cream, borderRadius: 10, padding: "14px 18px",
+              background: C.cream, borderRadius: 0, padding: "14px 18px",
               border: `1px solid ${C.border}`,
               margin: 0, whiteSpace: "pre-wrap",
             }}>

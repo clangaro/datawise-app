@@ -221,6 +221,9 @@ export default function Questionnaire() {
                 placeholder={current.placeholder}
                 value={selected ?? ""}
                 onChange={(v) => handleSelect(v)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && canProceed) handleNext();
+                }}
                 style={{ fontSize: 18 }}
               />
             ) : (

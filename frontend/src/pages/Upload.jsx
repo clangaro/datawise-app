@@ -273,7 +273,7 @@ export default function Upload() {
   }
 
   return (
-    <div style={{ maxWidth: 880, margin: "0 auto" }}>
+    <div style={{ maxWidth: 1200, width: "100%", margin: "0 auto", padding: "0 16px" }}>
       <SectionTitle subtitle="Drop a CSV or Excel file to begin">Upload your data</SectionTitle>
 
       {!fileData && (
@@ -360,11 +360,20 @@ export default function Upload() {
               display: "flex", justifyContent: "space-between", alignItems: "center",
               marginBottom: 18,
             }}>
-              <div style={{
-                fontFamily: "JetBrains Mono, monospace", fontSize: 10,
-                color: C.coral, letterSpacing: "0.22em",
-              }}>
-                {">> COLUMN_ANALYSIS.LIVE"}
+              <div>
+                <div style={{
+                  fontFamily: "JetBrains Mono, monospace", fontSize: 10,
+                  color: C.coral, letterSpacing: "0.22em", marginBottom: 6,
+                }}>
+                  {">> COLUMN_ANALYSIS.LIVE"}
+                </div>
+                <div style={{
+                  fontFamily: "Orbitron, sans-serif", fontSize: 20, fontWeight: 800,
+                  color: C.ink, textTransform: "uppercase", letterSpacing: "0.1em",
+                  textShadow: `0 0 16px ${C.coral}44`,
+                }}>
+                  Column Analysis
+                </div>
               </div>
               <div style={{
                 fontFamily: "JetBrains Mono, monospace", fontSize: 10,
@@ -373,14 +382,24 @@ export default function Upload() {
                 {String(columns.length).padStart(2, "0")} FIELDS DETECTED
               </div>
             </div>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: 14 }}>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 16 }}>
               {columns.map((col, i) => <ColumnSummaryCard key={col.name} col={col} index={i} />)}
             </div>
           </Card>
 
           <Card style={{ marginBottom: 20 }}>
-            <div style={{ fontFamily: "Orbitron, sans-serif", fontWeight: 700, fontSize: 14, color: C.ink, marginBottom: 14, textTransform: "uppercase", letterSpacing: "0.06em" }}>
-              Assign column roles
+            <div style={{
+              fontFamily: "JetBrains Mono, monospace", fontSize: 10,
+              color: C.coral, letterSpacing: "0.22em", marginBottom: 6,
+            }}>
+              {">> ROLE_ASSIGNMENT"}
+            </div>
+            <div style={{
+              fontFamily: "Orbitron, sans-serif", fontWeight: 800, fontSize: 20,
+              color: C.ink, marginBottom: 18, textTransform: "uppercase", letterSpacing: "0.1em",
+              textShadow: `0 0 16px ${C.coral}44`,
+            }}>
+              Assign Column Roles
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 16 }}>
               <div>
@@ -464,21 +483,29 @@ export default function Upload() {
           </Card>
 
           <Card style={{ marginBottom: 20, overflow: "hidden", padding: 0 }}>
-            <div style={{
-              padding: "18px 28px 10px",
-              display: "flex", justifyContent: "space-between", alignItems: "center",
-            }}>
+            <div style={{ padding: "22px 28px 12px" }}>
               <div style={{
                 fontFamily: "JetBrains Mono, monospace", fontSize: 10,
-                color: C.coral, letterSpacing: "0.22em",
+                color: C.coral, letterSpacing: "0.22em", marginBottom: 6,
               }}>
                 {">> DATA_PREVIEW.LOG"}
               </div>
               <div style={{
-                fontFamily: "JetBrains Mono, monospace", fontSize: 10,
-                color: C.muted, letterSpacing: "0.14em",
+                display: "flex", justifyContent: "space-between", alignItems: "center",
               }}>
-                FIRST 10 ROWS
+                <div style={{
+                  fontFamily: "Orbitron, sans-serif", fontSize: 20, fontWeight: 800,
+                  color: C.ink, textTransform: "uppercase", letterSpacing: "0.1em",
+                  textShadow: `0 0 16px ${C.coral}44`,
+                }}>
+                  Data Preview
+                </div>
+                <div style={{
+                  fontFamily: "JetBrains Mono, monospace", fontSize: 10,
+                  color: C.muted, letterSpacing: "0.14em",
+                }}>
+                  FIRST 10 ROWS
+                </div>
               </div>
             </div>
             <div style={{ overflowX: "auto" }}>

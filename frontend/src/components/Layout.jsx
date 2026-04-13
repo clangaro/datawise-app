@@ -105,7 +105,7 @@ export default function Layout() {
         </nav>
 
         <main style={{ position: "relative", zIndex: 1, padding: "56px 24px 120px" }}>
-          {step !== null && step !== undefined && <StepBar current={step} />}
+          {step !== null && step !== undefined && <StepBar current={step} onNavigate={(path) => navigate(path)} />}
           <AnimatePresence mode="wait">
             <motion.div
               key={location.pathname}

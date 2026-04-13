@@ -155,11 +155,11 @@ export default function Report() {
   };
 
   return (
-    <div style={{ maxWidth: 820, margin: "0 auto" }}>
+    <div style={{ maxWidth: 1200, width: "100%", margin: "0 auto", padding: "0 16px" }}>
       <SectionTitle subtitle="Your full analysis, ready to share">Report</SectionTitle>
 
       <Card style={{ marginBottom: 20 }}>
-        <div style={{ fontFamily: "Orbitron, sans-serif", fontWeight: 700, fontSize: 13, color: C.ink, textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 10 }}>
+        <div style={{ fontFamily: "Orbitron, sans-serif", fontWeight: 800, fontSize: 18, color: C.ink, textTransform: "uppercase", letterSpacing: "0.08em", textShadow: `0 0 16px ${C.coral}44`, marginBottom: 14 }}>
           Research Question
         </div>
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
@@ -174,7 +174,7 @@ export default function Report() {
 
       {fileData && (
         <Card style={{ marginBottom: 20 }}>
-          <div style={{ fontFamily: "Orbitron, sans-serif", fontWeight: 700, fontSize: 13, color: C.ink, textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 10 }}>
+          <div style={{ fontFamily: "Orbitron, sans-serif", fontWeight: 800, fontSize: 18, color: C.ink, textTransform: "uppercase", letterSpacing: "0.08em", textShadow: `0 0 16px ${C.coral}44`, marginBottom: 14 }}>
             Dataset
           </div>
           <div style={{ fontFamily: "Rajdhani, sans-serif", fontSize: 13, color: C.ink, lineHeight: 1.8 }}>
@@ -190,7 +190,7 @@ export default function Report() {
 
       {recommendation && (
         <Card style={{ marginBottom: 20 }}>
-          <div style={{ fontFamily: "Orbitron, sans-serif", fontWeight: 700, fontSize: 13, color: C.ink, textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 10 }}>
+          <div style={{ fontFamily: "Orbitron, sans-serif", fontWeight: 800, fontSize: 18, color: C.ink, textTransform: "uppercase", letterSpacing: "0.08em", textShadow: `0 0 16px ${C.coral}44`, marginBottom: 14 }}>
             Recommended test
           </div>
           <div style={{ fontFamily: "Orbitron, sans-serif", fontWeight: 800, fontSize: 18, color: C.ink }}>
@@ -204,7 +204,7 @@ export default function Report() {
 
       {assumptionResults?.length > 0 && (
         <Card style={{ marginBottom: 20 }}>
-          <div style={{ fontFamily: "Orbitron, sans-serif", fontWeight: 700, fontSize: 13, color: C.ink, textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 10 }}>
+          <div style={{ fontFamily: "Orbitron, sans-serif", fontWeight: 800, fontSize: 18, color: C.ink, textTransform: "uppercase", letterSpacing: "0.08em", textShadow: `0 0 16px ${C.coral}44`, marginBottom: 14 }}>
             Assumption checks
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
@@ -240,7 +240,7 @@ export default function Report() {
 
       {testResult && (
         <Card style={{ marginBottom: 20, background: `linear-gradient(135deg, ${(testResult.significant ? C.teal : C.muted)}10, transparent)` }}>
-          <div style={{ fontFamily: "Orbitron, sans-serif", fontWeight: 700, fontSize: 13, color: C.ink, textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 10 }}>
+          <div style={{ fontFamily: "Orbitron, sans-serif", fontWeight: 800, fontSize: 18, color: C.ink, textTransform: "uppercase", letterSpacing: "0.08em", textShadow: `0 0 16px ${C.coral}44`, marginBottom: 14 }}>
             Results
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: 14 }}>
@@ -275,13 +275,13 @@ export default function Report() {
       )}
 
       <Card style={{ marginBottom: 24 }}>
-        <div style={{ fontFamily: "Orbitron, sans-serif", fontWeight: 700, fontSize: 13, color: C.ink, textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 10 }}>
+        <div style={{ fontFamily: "Orbitron, sans-serif", fontWeight: 800, fontSize: 18, color: C.ink, textTransform: "uppercase", letterSpacing: "0.08em", textShadow: `0 0 16px ${C.coral}44`, marginBottom: 14 }}>
           Markdown preview
         </div>
         <pre style={{
           fontFamily: "'IBM Plex Mono', Menlo, monospace",
           fontSize: 12, color: C.ink, lineHeight: 1.6,
-          background: C.cream, borderRadius: 10, padding: "14px 18px",
+          background: C.cream, borderRadius: 0, padding: "14px 18px",
           border: `1px solid ${C.border}`, overflow: "auto", maxHeight: 300, margin: 0,
           whiteSpace: "pre-wrap",
         }}>

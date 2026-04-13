@@ -1,15 +1,46 @@
-import { useMemo, useRef } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import {
   BarChart, Bar, ScatterChart, Scatter, XAxis, YAxis, CartesianGrid,
   Tooltip, ResponsiveContainer, Cell, ErrorBar, ReferenceLine, Legend,
 } from "recharts";
-import { Download, CheckCircle2, ArrowLeft, ArrowRight } from "lucide-react";
+import {
+  Download, CheckCircle2, ArrowLeft, ArrowRight,
+  BarChart2, ScatterChart as ScatterIcon, TrendingUp, Minus, ToggleLeft, ToggleRight,
+} from "lucide-react";
 import { Card, Btn, Pill, SectionTitle, C } from "../components/ui.jsx";
 import { useAnalysis } from "../context/AnalysisContext.jsx";
 
 const PALETTE = [C.coral, C.teal, C.purple, C.yellow, "#3BC0DB", "#F18F01"];
+
+function ChartToggle({ label, active, onToggle }) {
+  return (
+    <button
+      onClick={onToggle}
+      style={{
+        display: "inline-flex", alignItems: "center", gap: 8,
+        padding: "6px 14px",
+        border: `1px solid ${active ? C.coral : C.border}`,
+        background: active ? `${C.coral}18` : "transparent",
+        clipPath: "polygon(6px 0, 100% 0, calc(100% - 6px) 100%, 0 100%)",
+        cursor: "pointer",
+        fontFamily: "JetBrains Mono, monospace",
+        fontSize: 9, fontWeight: 500,
+        letterSpacing: "0.14em",
+        textTransform: "uppercase",
+        color: active ? C.coral : C.muted,
+        transition: "all 0.2s",
+        boxShadow: active ? `0 0 12px ${C.coral}22` : "none",
+      }}
+    >
+      {active
+        ? <ToggleRight size={14} color={C.coral} strokeWidth={1.6} />
+        : <ToggleLeft size={14} color={C.muted} strokeWidth={1.6} />}
+      {label}
+    </button>
+  );
+}
 
 function mean(arr) {
   if (!arr.length) return 0;
@@ -57,7 +88,7 @@ function downloadChartAsPng(container, filename = "datawise-chart.png") {
     canvas.width = rect.width * 2;
     canvas.height = rect.height * 2;
     const ctx = canvas.getContext("2d");
-    ctx.fillStyle = "#FFFDF4";
+    ctx.fillStyle = "#05080F";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
     URL.revokeObjectURL(url);
@@ -80,6 +111,11 @@ export default function Visualisation() {
   const navigate = useNavigate();
   const { profile, fileData, columnRoles, testResult } = useAnalysis();
   const chartRef = useRef(null);
+
+  const [showErrorBars, setShowErrorBars] = useState(true);
+  const [showRawPoints, setShowRawPoints] = useState(true);
+  const [showMeanLine, setShowMeanLine] = useState(false);
+  const [showRegLine, setShowRegLine]   = useState(true);
 
   if (!fileData || !profile) {
     return (
@@ -154,13 +190,17 @@ export default function Visualisation() {
     : "Data overview";
 
   return (
-    <div style={{ maxWidth: 820, margin: "0 auto" }}>
+    <div style={{ maxWidth: 1200, width: "100%", margin: "0 auto", padding: "0 16px" }}>
       <SectionTitle subtitle="Visual summary of your analysis">Visualisation</SectionTitle>
 
       <Card style={{ marginBottom: 20 }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 18 }}>
           <div>
-            <div style={{ fontFamily: "Orbitron, sans-serif", fontWeight: 700, fontSize: 16, color: C.ink }}>
+            <div style={{
+              fontFamily: "Orbitron, sans-serif", fontWeight: 800, fontSize: 20,
+              color: C.ink, textTransform: "uppercase", letterSpacing: "0.06em",
+              textShadow: `0 0 16px ${C.coral}44`,
+            }}>
               {chartTitle}
             </div>
             {testResult && (
@@ -175,6 +215,35 @@ export default function Visualisation() {
                 ? <><CheckCircle2 size={10} /> Significant</>
                 : "Not significant"}
             </Pill>
+          )}
+        </div>
+
+        {/* Chart control bar */}
+        <div style={{
+          display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 18,
+          padding: "12px 16px",
+          background: `${C.panel}88`,
+          border: `1px dashed ${C.border}`,
+          clipPath: "polygon(8px 0, 100% 0, calc(100% - 8px) 100%, 0 100%)",
+        }}>
+          <div style={{
+            fontFamily: "JetBrains Mono, monospace", fontSize: 9,
+            color: C.muted, letterSpacing: "0.18em",
+            display: "flex", alignItems: "center", marginRight: 10,
+          }}>
+            {">> CHART_CONTROLS"}
+          </div>
+          {isComparison && (
+            <>
+              <ChartToggle label="Error bars" active={showErrorBars} onToggle={() => setShowErrorBars(v => !v)} />
+              <ChartToggle label="Raw points" active={showRawPoints} onToggle={() => setShowRawPoints(v => !v)} />
+              <ChartToggle label="Grand mean" active={showMeanLine}  onToggle={() => setShowMeanLine(v => !v)} />
+            </>
+          )}
+          {isCorrelation && (
+            <>
+              <ChartToggle label="Regression line" active={showRegLine} onToggle={() => setShowRegLine(v => !v)} />
+            </>
           )}
         </div>
 
@@ -195,13 +264,33 @@ export default function Visualisation() {
                   label={{ value: dvCol, angle: -90, position: "insideLeft", fontFamily: "JetBrains Mono", fill: C.muted, fontSize: 12 }}
                 />
                 <Tooltip
-                  contentStyle={{ fontFamily: "JetBrains Mono", fontSize: 12, borderRadius: 10, border: `1px solid ${C.border}`, boxShadow: "0 4px 20px rgba(0,0,0,0.08)" }}
-                  cursor={{ fill: C.border + "66" }}
+                  contentStyle={{ fontFamily: "JetBrains Mono", fontSize: 12, borderRadius: 0, border: `1px solid ${C.coral}`, background: C.deep, color: C.ink }}
+                  cursor={{ fill: C.coral + "14" }}
                 />
-                <Bar dataKey="mean" radius={[8, 8, 0, 0]}>
+                {showMeanLine && groupedData.length > 0 && (
+                  <ReferenceLine
+                    y={groupedData.reduce((s, g) => s + g.mean, 0) / groupedData.length}
+                    stroke={C.yellow}
+                    strokeWidth={1.5}
+                    strokeDasharray="6 4"
+                    label={{ value: "Grand Mean", position: "right", fill: C.yellow, fontSize: 10, fontFamily: "JetBrains Mono" }}
+                  />
+                )}
+                <Bar dataKey="mean" radius={[0, 0, 0, 0]}>
                   {groupedData.map((_, i) => <Cell key={i} fill={PALETTE[i % PALETTE.length]} />)}
-                  <ErrorBar dataKey="sem" width={6} strokeWidth={2} stroke={C.ink} />
+                  {showErrorBars && (
+                    <ErrorBar dataKey="sem" width={6} strokeWidth={2} stroke={C.ink} />
+                  )}
                 </Bar>
+                {showRawPoints && jitterScatter.length > 0 && groupedData.map((g, gi) => (
+                  <Scatter
+                    key={g.name}
+                    data={jitterScatter.filter(p => p.xLabel === g.name).map((p, j) => ({ name: g.name, mean: p.y }))}
+                    fill={C.ink}
+                    fillOpacity={0.5}
+                    r={2.5}
+                  />
+                ))}
               </BarChart>
             </ResponsiveContainer>
           )}
@@ -223,11 +312,11 @@ export default function Visualisation() {
                   label={{ value: dvCol, angle: -90, position: "insideLeft", fontFamily: "JetBrains Mono", fill: C.muted, fontSize: 12 }}
                 />
                 <Tooltip
-                  contentStyle={{ fontFamily: "JetBrains Mono", fontSize: 12, borderRadius: 10, border: `1px solid ${C.border}` }}
+                  contentStyle={{ fontFamily: "JetBrains Mono", fontSize: 12, borderRadius: 0, border: `1px solid ${C.coral}`, background: C.deep, color: C.ink }}
                   cursor={{ strokeDasharray: "3 3" }}
                 />
                 <Scatter data={scatterData} fill={C.coral} fillOpacity={0.7} />
-                {regLine && (
+                {showRegLine && regLine && (
                   <Scatter
                     data={regLine}
                     line={{ stroke: C.purple, strokeWidth: 3 }}
@@ -247,10 +336,20 @@ export default function Visualisation() {
         </div>
       </Card>
 
-      {isComparison && jitterScatter.length > 0 && (
+      {isComparison && showRawPoints && jitterScatter.length > 0 && (
         <Card style={{ marginBottom: 20 }}>
-          <div style={{ fontFamily: "Orbitron, sans-serif", fontWeight: 700, fontSize: 14, color: C.ink, marginBottom: 10, textTransform: "uppercase", letterSpacing: "0.06em" }}>
-            Raw data distribution
+          <div style={{
+            fontFamily: "JetBrains Mono, monospace", fontSize: 10, color: C.coral,
+            letterSpacing: "0.22em", marginBottom: 6,
+          }}>
+            {">> RAW_DISTRIBUTION.LIVE"}
+          </div>
+          <div style={{
+            fontFamily: "Orbitron, sans-serif", fontWeight: 800, fontSize: 18,
+            color: C.ink, textTransform: "uppercase", letterSpacing: "0.08em",
+            textShadow: `0 0 16px ${C.coral}44`, marginBottom: 14,
+          }}>
+            Raw Data Distribution
           </div>
           <ResponsiveContainer width="100%" height={240}>
             <ScatterChart margin={{ top: 20, right: 20, bottom: 20, left: 10 }}>
@@ -267,7 +366,18 @@ export default function Visualisation() {
                 tick={{ fontFamily: "JetBrains Mono", fontSize: 11, fill: C.muted }}
                 axisLine={false} tickLine={false}
               />
-              <Tooltip contentStyle={{ fontFamily: "JetBrains Mono", fontSize: 12, borderRadius: 10 }} cursor={{ strokeDasharray: "3 3" }} />
+              <Tooltip
+                contentStyle={{ fontFamily: "JetBrains Mono", fontSize: 12, borderRadius: 0, border: `1px solid ${C.coral}`, background: C.deep, color: C.ink }}
+                cursor={{ strokeDasharray: "3 3" }}
+              />
+              {showMeanLine && groupedData.length > 0 && (
+                <ReferenceLine
+                  y={groupedData.reduce((s, g) => s + g.mean, 0) / groupedData.length}
+                  stroke={C.yellow}
+                  strokeWidth={1.5}
+                  strokeDasharray="6 4"
+                />
+              )}
               {groupedData.map((g, gi) => (
                 <Scatter
                   key={g.name}
