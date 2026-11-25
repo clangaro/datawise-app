@@ -1,6 +1,6 @@
-# 🔬 DataWise
+# DataWise (DARVIS)
 
-> A scientifically-validated, questionnaire-guided interactive data analysis tool.  
+> A questionnaire-guided tool that helps researchers choose a statistical test, check its assumptions and run it.  
 > **Stack:** React + Vite (frontend) · FastAPI (backend) · scipy / statsmodels / pingouin
 
 ---
@@ -35,7 +35,6 @@ datawise-app/
 │   │   │   ├── Visualisation.jsx
 │   │   │   └── Report.jsx
 │   │   ├── components/         # Reusable UI components
-│   │   ├── hooks/              # Custom React hooks
 │   │   └── App.jsx
 │   ├── package.json
 │   └── vite.config.js          # Proxy: /api → localhost:8000
